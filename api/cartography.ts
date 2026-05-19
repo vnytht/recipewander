@@ -1,8 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { seededExamples, normalizeDish, EXAMPLE_DISHES } from './_lib/seeds';
 
 export const config = { maxDuration: 30 };
-
-const EXAMPLE_DISHES = ['butter chicken', 'ramen', 'tiramisu', 'margarita', 'chocolate'];
 
 const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 
@@ -91,6 +90,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const dish = typeof req.body?.dish === 'string' ? req.body.dish.trim() : '';
     if (dish.length < 2 || dish.length > 80) {
       return res.status(400).json({ error: 'Enter a dish between 2 and 80 characters.', examples: EXAMPLE_DISHES });
+    }
+
+    const normalized = normalizeDish(dish);
+    const seeded = seededExamples[normalized];
+    if (seeded) {
+      return res.status(200).json({ data: { ...seeded, cached: true } });
     }
 
     const data = await callGemini(dish);
