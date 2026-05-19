@@ -33,7 +33,7 @@ export function InfoPanel({
     <motion.aside
       className="info-panel"
       aria-label={`${data.dishName} cartography`}
-      initial={{ x: '100%' }}
+      initial={false}
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', damping: 30, stiffness: 220 }}
@@ -55,12 +55,12 @@ export function InfoPanel({
       </div>
 
       <div className="share-quote">
-        <span>00_Shareable_Finding</span>
+        <span>Dish Passport</span>
         "{data.shareQuote}"
       </div>
 
       <section>
-        <h2>Convergence Thesis</h2>
+        <h2>Origin Brief</h2>
         <p>{data.convergenceThesis}</p>
         <div className="plate-location">
           <MapPin size={14} />
@@ -69,7 +69,7 @@ export function InfoPanel({
       </section>
 
       <section>
-        <h2>{playbackMode === 'lineage' ? 'Active Evolution Stage' : 'Active Ingredient'}</h2>
+        <h2>{playbackMode === 'lineage' ? 'Selected Atlas Stop' : 'Selected Ingredient Route'}</h2>
         {playbackMode === 'lineage' ? (
           <article className="ingredient-card active">
             <div className="ingredient-card-header">
@@ -112,7 +112,7 @@ export function InfoPanel({
       </section>
 
       <section>
-        <h2>Dish Evolution</h2>
+        <h2>Evolution</h2>
         <div className="ingredient-list">
           {data.dishLineage.map((stage, index) => (
             <button
@@ -132,7 +132,7 @@ export function InfoPanel({
       </section>
 
       <section>
-        <h2>Converging Ingredients</h2>
+        <h2>Ingredient Routes</h2>
         <div className="ingredient-list">
           {data.ingredients.map((ingredient, index) => (
             <button
@@ -153,7 +153,7 @@ export function InfoPanel({
 
       {data.nameJourney.length > 0 && (
         <section>
-          <h2>Name Journey</h2>
+          <h2>Name Trail</h2>
           <div className="name-journey">
             {data.nameJourney.map((step) => (
               <div key={`${step.order}-${step.name}`}>
@@ -167,7 +167,7 @@ export function InfoPanel({
       )}
 
       <section>
-        <h2>Evidence Notes</h2>
+        <h2>Evidence</h2>
         <div className="chips">
           {data.globalForces.map((force) => <span key={force}>{force}</span>)}
         </div>
