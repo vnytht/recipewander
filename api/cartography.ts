@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { examples, getCartography, isRateLimited } from '../src/server/cartographyCore';
+import { examples, getCartography, isRateLimited } from './lib/cartographyCore';
 
 export const config = {
   maxDuration: 30
