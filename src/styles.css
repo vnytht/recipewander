@@ -377,8 +377,7 @@ button:disabled {
   background:
     linear-gradient(rgba(255, 248, 234, 0.96), rgba(247, 239, 224, 0.97)),
     repeating-linear-gradient(0deg, transparent 0 34px, rgba(45, 36, 28, 0.035) 34px 35px);
-  border-left: 1px solid rgba(45, 36, 28, 0.22);
-  box-shadow: -14px 0 34px rgba(74, 53, 30, 0.12);
+  box-shadow: -10px 0 28px rgba(74, 53, 30, 0.08);
   overflow-y: auto;
 }
 
@@ -625,8 +624,10 @@ button:disabled {
 
 .ingredient-row.selected {
   border-color: rgba(185, 71, 47, 0.56);
-  background: rgba(185, 71, 47, 0.09);
-  box-shadow: inset 4px 0 0 var(--tomato);
+  background:
+    linear-gradient(180deg, rgba(185, 71, 47, 0.08), rgba(210, 155, 47, 0.08)),
+    rgba(255, 248, 234, 0.9);
+  box-shadow: 0 8px 20px rgba(74, 53, 30, 0.08);
 }
 
 .chips {
@@ -768,8 +769,7 @@ button:disabled {
 }
 
 .empty-legend > div:first-child {
-  border-left: 3px solid var(--saffron);
-  padding-left: 12px;
+  padding-left: 0;
 }
 
 .empty-legend p {
