@@ -257,6 +257,7 @@ async function handleCartography(req: IncomingMessage, res: ServerResponse) {
       return;
     }
 
+    console.error('cartography error:', error?.code, error?.message, error?.stack?.slice(0, 300));
     const message = error instanceof ValidationError
       ? `Gemini returned incomplete cartography: ${error.message}`
       : 'Flavor cartography failed. Try another dish or open an example.';
