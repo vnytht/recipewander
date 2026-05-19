@@ -197,13 +197,17 @@ button:disabled {
 
 .route text,
 .plate-marker text {
-  font-size: 12px;
+  font-size: 8px;
   font-weight: 800;
   paint-order: stroke;
   stroke: #fffaf1;
-  stroke-width: 4px;
+  stroke-width: 2.8px;
   stroke-linejoin: round;
   text-transform: uppercase;
+}
+
+.lineage-point text {
+  font-size: 7px;
 }
 
 .empty-map-copy text:first-child {

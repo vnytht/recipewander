@@ -91,6 +91,13 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
   const pathGenerator = useMemo(() => d3.geoPath(projection), [projection]);
   const activeIngredient = data && activeFrame?.ingredientIndex !== undefined ? data.ingredients[activeFrame.ingredientIndex] : null;
   const activeLineage = data && activeFrame?.lineageIndex !== undefined ? data.dishLineage[activeFrame.lineageIndex] : null;
+  const showPlateMarker = Boolean(
+    data &&
+    (
+      playbackMode === 'ingredients' ||
+      (playbackMode === 'lineage' && activeFrame?.lineageIndex === data.dishLineage.length - 1)
+    )
+  );
 
   useEffect(() => {
     if (!svgRef.current || !zoomGRef.current) return;
@@ -207,11 +214,11 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
                   return (
                     <g key={`lineage-point-${index}`} transform={`translate(${pos[0]} ${pos[1]})`} className="lineage-point">
                       {isCurrentPoint ? (
-                        <rect x={-7} y={-7} width={14} height={14} fill="#c2462f" stroke="#fffaf1" strokeWidth={2} />
+                        <rect x={-4.5} y={-4.5} width={9} height={9} fill="#c2462f" stroke="#fffaf1" strokeWidth={1.5} />
                       ) : (
-                        <circle r={5} fill="#c2462f" stroke="#24221e" strokeWidth={1.2} />
+                        <circle r={3.3} fill="#c2462f" stroke="#24221e" strokeWidth={1} />
                       )}
-                      <text x={11} y={4} fill="#24221e">{step.stageTitle}</text>
+                      {isCurrentPoint && <text x={8} y={3.5} fill="#24221e">{step.stageTitle}</text>}
                     </g>
                   );
                 })}
@@ -264,11 +271,11 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
                 return (
                   <g key={`${ingredient.id}-point-${pointIndex}`} transform={`translate(${pos[0]} ${pos[1]})`}>
                     {isCurrentPoint ? (
-                      <rect x={-6} y={-6} width={12} height={12} fill="#111" stroke="#fffaf1" strokeWidth={1.8} />
+                      <rect x={-4.5} y={-4.5} width={9} height={9} fill="#111" stroke="#fffaf1" strokeWidth={1.5} />
                     ) : (
-                      <circle r={4.5} fill={color} stroke="#24221e" strokeWidth={1.2} />
+                      <circle r={3.2} fill={color} stroke="#24221e" strokeWidth={1} />
                     )}
-                    {(isCurrentPoint || pointIndex === 0) && <text x={10} y={4} fill="#24221e">{pointIndex === 0 ? ingredient.ingredient : point.name}</text>}
+                    {isCurrentPoint && <text x={8} y={3.5} fill="#24221e">{pointIndex === 0 ? ingredient.ingredient : point.name}</text>}
                   </g>
                 );
               })}
@@ -276,12 +283,12 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
           );
           })}
 
-          {data && projection(data.plateLocation.coordinates) && (
+          {showPlateMarker && data && projection(data.plateLocation.coordinates) && (
           <g transform={`translate(${projection(data.plateLocation.coordinates)![0]} ${projection(data.plateLocation.coordinates)![1]})`} className="plate-marker">
-            <circle r={32} fill="#fffaf1" stroke="#24221e" strokeWidth={2} filter="url(#plateGlow)" />
-            <circle r={20} fill="none" stroke="#b4832f" strokeWidth={2} />
-            <circle r={5} fill="#24221e" />
-            <text y={52} textAnchor="middle">{data.plateLocation.name}</text>
+            <circle r={13} fill="#fffaf1" stroke="#24221e" strokeWidth={1.3} filter="url(#plateGlow)" />
+            <circle r={8} fill="none" stroke="#b4832f" strokeWidth={1.2} />
+            <circle r={2.4} fill="#24221e" />
+            <text y={27} textAnchor="middle">{data.plateLocation.name}</text>
           </g>
           )}
         </g>
