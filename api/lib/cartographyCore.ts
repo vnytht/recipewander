@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { seededExamples, EXAMPLE_DISHES, normalizeDish } from './examples';
 import { extractJsonObject, validateDishCartography, ValidationError } from './validation';
 import type { ApiError, CartographyResponse, DishCartography } from './types';
@@ -9,8 +8,11 @@ const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 
 export const examples = EXAMPLE_DISHES;
 
-export function createId(input: string) {
-  return createHash('sha256').update(normalizeDish(input)).digest('hex').slice(0, 12);
+export function createId(input: string): string {
+  const str = normalizeDish(input);
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+  return (h >>> 0).toString(16).padStart(8, '0') + str.slice(0, 4).replace(/[^a-z0-9]/g, '0');
 }
 
 export function stamp(data: DishCartography): DishCartography {
@@ -21,11 +23,15 @@ export function stamp(data: DishCartography): DishCartography {
   };
 }
 
-for (const [dish, data] of Object.entries(seededExamples)) {
-  const id = createId(dish);
-  const seeded = stamp({ ...data, id, cached: true });
-  cache.set(normalizeDish(dish), seeded);
-  shareCache.set(id, seeded);
+try {
+  for (const [dish, data] of Object.entries(seededExamples)) {
+    const id = createId(dish);
+    const seeded = stamp({ ...data, id, cached: true });
+    cache.set(normalizeDish(dish), seeded);
+    shareCache.set(id, seeded);
+  }
+} catch (e) {
+  console.error('cache seed failed:', e);
 }
 
 export function isRateLimited(ip: string, windowMs: number, maxRequests: number) {
