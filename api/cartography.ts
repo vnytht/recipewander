@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const dish = typeof req.body?.dish === 'string' ? req.body.dish.trim() : '';
     const { status, body } = await getCartography(dish, {
       apiKey: process.env.GEMINI_API_KEY || '',
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite'
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
     });
     res.status(status).json(body);
   } catch (error) {
