@@ -14,7 +14,8 @@ interface WorldMapProps {
 
 type CountryFeature = GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
-const colors = ['#c2462f', '#16697a', '#b4832f', '#5c4d7d', '#2f7d4a', '#8b3a62', '#0d5c63', '#9a5626'];
+const colors = ['#b9472f', '#3d7188', '#d29b2f', '#4f7a55', '#8b5f42', '#7a5b88', '#6d7d47', '#b66a3c'];
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 function useResize(ref: React.RefObject<HTMLDivElement | null>) {
   const [size, setSize] = useState({ width: 1000, height: 650 });
@@ -64,6 +65,14 @@ function segmentPath(projection: d3.GeoProjection, start: GeoPoint, end: GeoPoin
   return `M ${pStart[0]} ${pStart[1]} Q ${midX} ${midY} ${pEnd[0]} ${pEnd[1]}`;
 }
 
+function screenDistance(projection: d3.GeoProjection, a?: GeoPoint, b?: GeoPoint) {
+  if (!a || !b) return null;
+  const pA = projection(a.coordinates);
+  const pB = projection(b.coordinates);
+  if (!pA || !pB) return null;
+  return Math.sqrt((pB[0] - pA[0]) ** 2 + (pB[1] - pA[1]) ** 2);
+}
+
 export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelectIngredient }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -71,6 +80,7 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const { width, height } = useResize(containerRef);
   const [countries, setCountries] = useState<CountryFeature | null>(null);
+  const [currentZoomScale, setCurrentZoomScale] = useState(1);
 
   useEffect(() => {
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
@@ -91,6 +101,16 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
   const pathGenerator = useMemo(() => d3.geoPath(projection), [projection]);
   const activeIngredient = data && activeFrame?.ingredientIndex !== undefined ? data.ingredients[activeFrame.ingredientIndex] : null;
   const activeLineage = data && activeFrame?.lineageIndex !== undefined ? data.dishLineage[activeFrame.lineageIndex] : null;
+  const panelWidth = 440;
+  const captionWidth = Math.min(isPanelOpen ? 480 : 580, width - 56);
+  const captionY = Math.max(92, height - 178);
+  const showPlateMarker = Boolean(
+    data &&
+    (
+      playbackMode === 'ingredients' ||
+      (playbackMode === 'lineage' && activeFrame?.lineageIndex === data.dishLineage.length - 1)
+    )
+  );
 
   useEffect(() => {
     if (!svgRef.current || !zoomGRef.current) return;
@@ -121,8 +141,20 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
 
     const projected = projection(activeFrame.location.coordinates);
     if (!projected) return;
-    const scale = activeFrame.kind === 'plate' ? 2.3 : 3.05;
-    const centerX = isPanelOpen ? Math.max(220, (width - 460) / 2) : width / 2;
+    let previousLocation: GeoPoint | undefined;
+    if (playbackMode === 'lineage' && activeFrame.lineageIndex !== undefined && activeFrame.lineageIndex > 0) {
+      previousLocation = data.dishLineage[activeFrame.lineageIndex - 1]?.location;
+    }
+    if (playbackMode === 'ingredients' && activeFrame.ingredientIndex !== undefined && activeFrame.pointIndex > 0) {
+      const ingredient = data.ingredients[activeFrame.ingredientIndex];
+      previousLocation = routePoints(ingredient, data.plateLocation)[activeFrame.pointIndex - 1];
+    }
+    const hopDistance = screenDistance(projection, previousLocation, activeFrame.location);
+    const closeHopBoost = hopDistance ? clamp(120 / Math.max(hopDistance, 18), 0, 3.2) : 0;
+    const baseScale = activeFrame.kind === 'plate' ? 2.4 : 3.2;
+    const scale = clamp(baseScale + closeHopBoost, 2.4, 6.4);
+    setCurrentZoomScale(scale);
+    const centerX = isPanelOpen ? Math.max(220, (width - panelWidth) / 2) : width / 2;
     const centerY = height / 2;
     const target = d3.zoomIdentity
       .translate(centerX, centerY)
@@ -134,8 +166,9 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
       .duration(1350)
       .ease(d3.easeCubicInOut)
       .call(zoomRef.current.transform, target);
-  }, [activeFrame, data, height, isPanelOpen, projection, width]);
+  }, [activeFrame, data, height, isPanelOpen, playbackMode, projection, width]);
 
+  const markerScale = 1 / Math.sqrt(currentZoomScale);
   return (
     <div className="map-stage" ref={containerRef}>
       <svg ref={svgRef} width={width} height={height} role="img" aria-label="Animated world map of ingredient routes">
@@ -153,7 +186,7 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
           <path
             d={pathGenerator(d3.geoGraticule10()) || ''}
             fill="none"
-            stroke="rgba(36, 34, 30, 0.13)"
+            stroke="rgba(45, 36, 28, 0.12)"
             strokeWidth={0.7}
           />
 
@@ -161,17 +194,17 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
             <path
               key={index}
               d={pathGenerator(country) || ''}
-              fill="#d8dcc8"
-              stroke="#2a2824"
-              strokeOpacity={0.28}
-              strokeWidth={0.45}
+              fill="#d9ddc8"
+              stroke="#5e5a44"
+              strokeOpacity={0.24}
+              strokeWidth={0.42}
             />
           ))}
 
         {!data && (
           <g className="empty-map-copy">
-            <text x={width / 2} y={height / 2 - 18} textAnchor="middle">AWAITING_QUERY</text>
-            <text x={width / 2} y={height / 2 + 14} textAnchor="middle">Input dish or drink to begin ingredient convergence trace.</text>
+            <text x={width / 2} y={height / 2 - 18} textAnchor="middle">Choose a dish to begin</text>
+            <text x={width / 2} y={height / 2 + 16} textAnchor="middle">Map its ancestry first, then the ingredients that crossed paths.</text>
           </g>
         )}
 
@@ -190,8 +223,8 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
                       className={isCurrentSegment ? 'route-segment drawing' : 'route-segment'}
                       d={d}
                       fill="none"
-                      stroke="#c2462f"
-                      strokeWidth={isCurrentSegment ? 4 : 2.4}
+                      stroke="#b9472f"
+                      strokeWidth={(isCurrentSegment ? 4 : 2.4) * markerScale}
                       strokeOpacity={isCurrentSegment ? 0.96 : 0.42}
                       strokeLinecap="round"
                       pathLength={1}
@@ -205,13 +238,13 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
                   if (!pos || !isVisiblePoint) return null;
                   const step = data.dishLineage[index];
                   return (
-                    <g key={`lineage-point-${index}`} transform={`translate(${pos[0]} ${pos[1]})`} className="lineage-point">
+                    <g key={`lineage-point-${index}`} transform={`translate(${pos[0]} ${pos[1]}) scale(${markerScale})`} className="lineage-point">
                       {isCurrentPoint ? (
-                        <rect x={-7} y={-7} width={14} height={14} fill="#c2462f" stroke="#fffaf1" strokeWidth={2} />
+                        <path d="M 0 -6 L 5.6 0 L 0 6 L -5.6 0 Z" fill="#b9472f" stroke="#fff8ea" strokeWidth={1.5} />
                       ) : (
-                        <circle r={5} fill="#c2462f" stroke="#24221e" strokeWidth={1.2} />
+                        <circle r={3.3} fill="#b9472f" stroke="#2d241c" strokeWidth={1} />
                       )}
-                      <text x={11} y={4} fill="#24221e">{step.stageTitle}</text>
+                      {isCurrentPoint && <text x={8} y={3.5} fill="#2d241c">{step.stageTitle}</text>}
                     </g>
                   );
                 })}
@@ -249,7 +282,7 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
                     d={d}
                     fill="none"
                     stroke={color}
-                    strokeWidth={isCurrentSegment ? 3.5 : 2.1}
+                    strokeWidth={(isCurrentSegment ? 3.5 : 2.1) * markerScale}
                     strokeOpacity={isCurrentSegment ? 0.96 : 0.34}
                     strokeLinecap="round"
                     pathLength={1}
@@ -262,13 +295,13 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
                 const isCurrentPoint = isActive && pointIndex === activeFrame?.pointIndex;
                 if (!pos || !isVisiblePoint) return null;
                 return (
-                  <g key={`${ingredient.id}-point-${pointIndex}`} transform={`translate(${pos[0]} ${pos[1]})`}>
+                  <g key={`${ingredient.id}-point-${pointIndex}`} transform={`translate(${pos[0]} ${pos[1]}) scale(${markerScale})`}>
                     {isCurrentPoint ? (
-                      <rect x={-6} y={-6} width={12} height={12} fill="#111" stroke="#fffaf1" strokeWidth={1.8} />
+                      <path d="M 0 -5.8 L 5.4 0 L 0 5.8 L -5.4 0 Z" fill="#2d241c" stroke="#fff8ea" strokeWidth={1.4} />
                     ) : (
-                      <circle r={4.5} fill={color} stroke="#24221e" strokeWidth={1.2} />
+                      <circle r={3.2} fill={color} stroke="#2d241c" strokeWidth={1} />
                     )}
-                    {(isCurrentPoint || pointIndex === 0) && <text x={10} y={4} fill="#24221e">{pointIndex === 0 ? ingredient.ingredient : point.name}</text>}
+                    {isCurrentPoint && <text x={8} y={3.5} fill="#2d241c">{pointIndex === 0 ? ingredient.ingredient : point.name}</text>}
                   </g>
                 );
               })}
@@ -276,26 +309,26 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
           );
           })}
 
-          {data && projection(data.plateLocation.coordinates) && (
-          <g transform={`translate(${projection(data.plateLocation.coordinates)![0]} ${projection(data.plateLocation.coordinates)![1]})`} className="plate-marker">
-            <circle r={32} fill="#fffaf1" stroke="#24221e" strokeWidth={2} filter="url(#plateGlow)" />
-            <circle r={20} fill="none" stroke="#b4832f" strokeWidth={2} />
-            <circle r={5} fill="#24221e" />
-            <text y={52} textAnchor="middle">{data.plateLocation.name}</text>
+          {showPlateMarker && data && projection(data.plateLocation.coordinates) && (
+          <g transform={`translate(${projection(data.plateLocation.coordinates)![0]} ${projection(data.plateLocation.coordinates)![1]}) scale(${markerScale})`} className="plate-marker">
+            <circle r={13} fill="#fff8ea" stroke="#2d241c" strokeWidth={1.2} filter="url(#plateGlow)" />
+            <circle r={8} fill="none" stroke="#d29b2f" strokeWidth={1.2} />
+            <circle r={2.4} fill="#2d241c" />
+            <text y={27} textAnchor="middle">{data.plateLocation.name}</text>
           </g>
           )}
         </g>
 
         {activeIngredient && (
-          <g className="map-caption" transform={`translate(28 ${height - 94})`}>
-            <rect width={Math.min(520, width - 56)} height={64} />
+          <g className="map-caption" transform={`translate(28 ${captionY})`}>
+            <rect width={captionWidth} height={64} />
             <text x={18} y={24}>{activeFrame?.label || activeIngredient.ingredient}</text>
             <text x={18} y={45}>{activeFrame?.subtitle || `${activeIngredient.origin.name} → ${data?.plateLocation.name}`}</text>
           </g>
         )}
         {activeLineage && (
-          <g className="map-caption" transform={`translate(28 ${height - 94})`}>
-            <rect width={Math.min(580, width - 56)} height={64} />
+          <g className="map-caption" transform={`translate(28 ${captionY})`}>
+            <rect width={captionWidth} height={64} />
             <text x={18} y={24}>{activeLineage.stageTitle}</text>
             <text x={18} y={45}>{activeLineage.ancestorName} · {activeLineage.period}</text>
           </g>

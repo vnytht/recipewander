@@ -21,13 +21,13 @@ export function SearchBar({ value, isLoading, onValueChange, onSearch }: SearchB
         <input
           value={value}
           onChange={(event) => onValueChange(event.target.value)}
-          placeholder="ENTER DISH TO TRACE..."
+          placeholder="Search a dish or drink..."
           disabled={isLoading}
           aria-label="Dish or drink"
         />
         <button disabled={isLoading || !value.trim()} type="submit">
           {isLoading ? <Loader2 size={14} className="spin" /> : null}
-          {isLoading ? '...' : 'TRACE'}
+          {isLoading ? 'Mapping...' : 'Map Dish'}
         </button>
       </form>
       <div className="examples" aria-label="Example dishes">

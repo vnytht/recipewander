@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Globe2, PanelRightOpen } from 'lucide-react';
+import { AlertCircle, Compass, PanelRightOpen } from 'lucide-react';
 import { InfoPanel } from '@/components/InfoPanel';
 import { PlaybackControls } from '@/components/PlaybackControls';
 import { SearchBar } from '@/components/SearchBar';
@@ -9,10 +9,10 @@ import { buildJourneyFrames, firstFrameForIngredient, type PlaybackMode } from '
 import type { DishCartography } from '@/lib/types';
 
 const loadingMessages = [
-  'Reading spice routes...',
-  'Triangulating pantry geography...',
-  'Separating myth from menu lore...',
-  'Drawing routes to the plate...'
+  'Opening the culinary atlas...',
+  'Reading old route notes...',
+  'Separating kitchen myth from history...',
+  'Drawing the path to the plate...'
 ];
 
 export default function App() {
@@ -119,11 +119,11 @@ export default function App() {
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">
-            <Globe2 size={22} />
+            <Compass size={25} />
           </div>
           <div>
             <span>Flavor Cartography</span>
-            <small>System.Research.Culinary_Convergence</small>
+            <small>Dish lineages, ingredient routes, and migrations behind the plate</small>
           </div>
         </div>
         <SearchBar value={query} isLoading={isLoading} onValueChange={setQuery} onSearch={runSearch} />
@@ -146,10 +146,10 @@ export default function App() {
 
         {isLoading && (
           <div className="loading-overlay">
-            <div className="loading-card">
-              <Globe2 size={34} />
+          <div className="loading-card">
+              <Compass size={34} />
               <strong>{loadingMessages[loadingIndex]}</strong>
-              <span>Gemini is building a cited food migration map.</span>
+              <span>Gemini is assembling a food-history field note.</span>
             </div>
           </div>
         )}
@@ -205,12 +205,12 @@ export default function App() {
         {!data && !isLoading && (
           <div className="empty-legend">
             <div>
-              <p>Convergence_History: Trace ingredient routes across global coordinates.</p>
+              <p>Atlas key: trace how a dish evolved, then reveal the routes that carried its ingredients.</p>
             </div>
             <div className="legend-row">
-              <span><i className="land-dot" />Land_Trade</span>
-              <span><i className="sea-dot" />Sea_Route</span>
-              <span><i className="plate-dot" />Plate_Point</span>
+              <span><i className="land-dot" />Dish Lineage</span>
+              <span><i className="sea-dot" />Ingredient Route</span>
+              <span><i className="plate-dot" />Plate</span>
             </div>
           </div>
         )}

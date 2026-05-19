@@ -20,6 +20,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "server", "api", "vite.config.ts"],
+  "include": ["src", "server", "api", "vite.config.ts", "vitest.config.ts"],
   "references": []
 }
