@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"npm run api\" \"npm run web\"",
     "web": "vite --host 127.0.0.1",
-    "api": "tsx server/api.ts",
+    "api": "PORT=3001 tsx server/api.ts",
     "build": "tsc && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run --config vitest.config.ts"
