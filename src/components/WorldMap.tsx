@@ -101,7 +101,8 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
   const pathGenerator = useMemo(() => d3.geoPath(projection), [projection]);
   const activeIngredient = data && activeFrame?.ingredientIndex !== undefined ? data.ingredients[activeFrame.ingredientIndex] : null;
   const activeLineage = data && activeFrame?.lineageIndex !== undefined ? data.dishLineage[activeFrame.lineageIndex] : null;
-  const captionWidth = Math.min(isPanelOpen ? 500 : 580, width - 56);
+  const panelWidth = 440;
+  const captionWidth = Math.min(isPanelOpen ? 480 : 580, width - 56);
   const captionY = Math.max(92, height - 178);
   const showPlateMarker = Boolean(
     data &&
@@ -153,7 +154,7 @@ export function WorldMap({ data, playbackMode, activeFrame, isPanelOpen, onSelec
     const baseScale = activeFrame.kind === 'plate' ? 2.4 : 3.2;
     const scale = clamp(baseScale + closeHopBoost, 2.4, 6.4);
     setCurrentZoomScale(scale);
-    const centerX = isPanelOpen ? Math.max(220, (width - 460) / 2) : width / 2;
+    const centerX = isPanelOpen ? Math.max(220, (width - panelWidth) / 2) : width / 2;
     const centerY = height / 2;
     const target = d3.zoomIdentity
       .translate(centerX, centerY)
