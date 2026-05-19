@@ -2,7 +2,6 @@
   "name": "flavor-cartography",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run api\" \"npm run web\"",
     "web": "vite --host 127.0.0.1",
